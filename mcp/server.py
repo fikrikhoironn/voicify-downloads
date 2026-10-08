@@ -87,6 +87,31 @@ def public_record(folder):
     }
 
 
+def timestamped_text(folder):
+    path = folder / "transcript.json"
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    lines = []
+    for segment in data.get("transcription", []):
+        text = segment.get("text", "").strip()
+        if not text:
+            continue
+        milliseconds = max(0, int(segment.get("offsets", {}).get("from", 0)))
+        stamp = f"{milliseconds // 3600000:02d}:{milliseconds // 60000 % 60:02d}:{milliseconds // 1000 % 60:02d}.{milliseconds % 1000:03d}"
+        lines.append(f"[{stamp}] {text}")
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
+def ensure_timestamped_text(folder):
+    text = timestamped_text(folder)
+    if text is not None:
+        path = folder / "transcript.txt"
+        if not path.is_file() or path.read_text(encoding="utf-8") != text:
+            path.write_text(text, encoding="utf-8")
+    return text
+
+
 def save_record(folder, data):
     path = folder / "recording.json"
     temp = folder / "recording.json.tmp"
@@ -169,6 +194,7 @@ def transcribe_worker(folder):
                 raise RuntimeError("Whisper failed: " + result.stderr[-600:])
             if not (folder / "transcript.txt").is_file():
                 raise RuntimeError("Whisper did not produce a transcript.")
+            ensure_timestamped_text(folder)
             update_record(folder, state="complete", progress=100, error=None)
     except Exception as exc:
         try:
@@ -233,7 +259,8 @@ def get_transcript(recording_id, include_segments=False):
     result = dict(record)
     transcript = folder / "transcript.txt"
     if transcript.is_file():
-        result["text"] = transcript.read_text(encoding="utf-8").strip()
+        text = ensure_timestamped_text(folder)
+        result["text"] = (text if text is not None else transcript.read_text(encoding="utf-8")).strip()
         result["subtitle_paths"] = {extension: str(folder / ("transcript." + extension)) for extension in ("srt", "vtt") if (folder / ("transcript." + extension)).is_file()}
         if include_segments and (folder / "transcript.json").is_file():
             raw = json.loads((folder / "transcript.json").read_text(encoding="utf-8"))

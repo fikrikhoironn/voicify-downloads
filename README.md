@@ -2,6 +2,8 @@
 
 Record meetings and transcribe them locally in Indonesian or English. Voicify can capture your microphone, system audio, or both, and can import existing audio or video files. Recordings and transcripts stay on your Mac.
 
+All transcript exports include timestamps. TXT and copied text use `[HH:MM:SS.mmm]`; SRT, VTT, and JSON preserve their timing data.
+
 ## Download
 
 [Download the latest Voicify DMG](https://github.com/fikrikhoironn/voicify-downloads/releases/latest)

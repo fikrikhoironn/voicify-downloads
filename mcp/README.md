@@ -1,25 +1,34 @@
 # Voicify MCP
 
-This local MCP server shares the Voicify recording library with Claude Code or Codex. It provides `list_recordings`, `transcribe_file`, and `get_transcript`. Audio and transcripts stay on your Mac.
+The stdio MCP server in `server.py` gives Codex and Claude Code access to recordings stored in `~/Documents/Voicify/`. If that folder does not exist but `~/Documents/Saylo/` does, Voicify uses the older library so existing recordings remain accessible. It runs locally and sends no audio or transcript data to a remote service.
 
-## Install
+## Tools
 
-1. Install Voicify from the [latest release](https://github.com/fikrikhoironn/voicify-downloads/releases/latest) and move the app to `/Applications`.
-2. Clone this repository or download its source ZIP.
-3. Install FFmpeg if it is not already on your Mac. The MCP importer needs it to decode audio and video files; the Mac app does not.
-4. Register the server with your client, using the actual path to `mcp/server.py` on your Mac:
+- `list_recordings`: recent app recordings and imports.
+- `transcribe_file`: copy a local audio or video file into the app library and start transcription. Indonesian (`id`) is the default language. The tool returns a recording ID immediately.
+- `get_transcript`: check status and read timestamped text, subtitle paths, and optional timestamped segments. Text lines use `[HH:MM:SS.mmm]`.
+
+`transcribe_file` accepts M4A, MP3, WAV, MP4, MOV, AAC, FLAC, OGG, WebM, MKV, AIFF, WMA, and CAF when the installed FFmpeg can decode the audio. Every source is converted to mono, 16 kHz, 16-bit PCM WAV before it reaches `whisper-cli`. The exact codecs supported inside each container depend on the FFmpeg build.
+
+Transcription runs in a separate local process. It continues if the MCP connection closes, and an unfinished job is resumed when the MCP server starts again after an interruption. Jobs share a lock so only one MCP transcription uses the model at a time.
+
+The server looks for `ffmpeg` and `whisper-cli` in the Voicify app resources, the project `bin/` folder, then `PATH`. Set `VOICIFY_RESOURCES`, `VOICIFY_FFMPEG_PATH`, `VOICIFY_WHISPER_CLI_PATH`, or `VOICIFY_MODEL_PATH` to select explicit resources. It uses the multilingual `ggml-small.bin` model.
+
+## Codex setup
 
 ```sh
-claude mcp add --scope user voicify -- /usr/bin/python3 /absolute/path/to/voicify-downloads/mcp/server.py
+codex mcp add voicify -- /usr/bin/python3 /absolute/path/to/local-transcribe/mcp/server.py
+```
+
+## Claude Code setup
+
+Add the server to your user configuration so it is available in every Claude Code project:
+
+```sh
+claude mcp add --scope user voicify -- /usr/bin/python3 /absolute/path/to/local-transcribe/mcp/server.py
 claude mcp get voicify
 ```
 
-For Codex:
+The server must be able to find the Voicify app resources and FFmpeg as described above. In Claude Code, ask it to use the `voicify` MCP tools to list recordings, transcribe a local file, or read a transcript.
 
-```sh
-codex mcp add voicify -- /usr/bin/python3 /absolute/path/to/voicify-downloads/mcp/server.py
-```
-
-The server uses the Whisper binary and model inside `/Applications/Voicify.app`. `transcribe_file` accepts M4A, MP3, WAV, MP4, MOV, AAC, FLAC, OGG, WebM, MKV, AIFF, WMA, and CAF when FFmpeg can decode the audio. Indonesian (`id`) is the default language; English (`en`) and automatic detection (`auto`) are also supported. The tool returns a recording ID immediately; use `get_transcript` to check progress and read the result.
-
-Voice Memos files must be exported to a normal folder before passing their paths to `transcribe_file` because macOS protects Voice Memos' private storage.
+Voice Memos keeps its private recording folder behind macOS privacy controls. Export a memo from Voice Memos to a normal file, then pass that file's absolute path to `transcribe_file`. An imported memo is then visible through `list_recordings` and in the Mac app.
