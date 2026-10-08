@@ -6,7 +6,7 @@ The stdio MCP server in `server.py` gives Codex and Claude Code access to record
 
 - `list_recordings`: recent app recordings and imports.
 - `transcribe_file`: copy a local audio or video file into the app library and start transcription. Indonesian (`id`) is the default language. The tool returns a recording ID immediately.
-- `get_transcript`: check status and read timestamped text, subtitle paths, and optional timestamped segments. Text lines use `[HH:MM:SS.mmm]`.
+- `get_transcript`: check status and read timestamped text, subtitle paths, and optional timestamped segments. Text lines use `[HH:MM:SS.mmm]` by default; pass `include_timestamps: false` to get plain text.
 
 `transcribe_file` accepts M4A, MP3, WAV, MP4, MOV, AAC, FLAC, OGG, WebM, MKV, AIFF, WMA, and CAF when the installed FFmpeg can decode the audio. Every source is converted to mono, 16 kHz, 16-bit PCM WAV before it reaches `whisper-cli`. The exact codecs supported inside each container depend on the FFmpeg build.
 

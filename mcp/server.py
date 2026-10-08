@@ -103,6 +103,16 @@ def timestamped_text(folder):
     return "\n".join(lines) + ("\n" if lines else "")
 
 
+def plain_text(folder):
+    path = folder / "transcript.json"
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    lines = [segment.get("text", "").strip() for segment in data.get("transcription", [])]
+    lines = [line for line in lines if line]
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
 def ensure_timestamped_text(folder):
     text = timestamped_text(folder)
     if text is not None:
@@ -249,7 +259,7 @@ def transcribe_file(path, language="id", title=None, terms=None):
         raise
 
 
-def get_transcript(recording_id, include_segments=False):
+def get_transcript(recording_id, include_segments=False, include_timestamps=True):
     if not isinstance(recording_id, str) or not recording_id or any(char not in "0123456789abcdef-" for char in recording_id.lower()):
         raise ValueError("Invalid recording id.")
     folder = LIBRARY / recording_id
@@ -260,7 +270,13 @@ def get_transcript(recording_id, include_segments=False):
     transcript = folder / "transcript.txt"
     if transcript.is_file():
         text = ensure_timestamped_text(folder)
-        result["text"] = (text if text is not None else transcript.read_text(encoding="utf-8")).strip()
+        if include_timestamps:
+            result["text"] = (text if text is not None else transcript.read_text(encoding="utf-8")).strip()
+        else:
+            plain = plain_text(folder)
+            if plain is None:
+                raise ValueError("This recording has no transcript segment data to remove timestamps from.")
+            result["text"] = plain.strip()
         result["subtitle_paths"] = {extension: str(folder / ("transcript." + extension)) for extension in ("srt", "vtt") if (folder / ("transcript." + extension)).is_file()}
         if include_segments and (folder / "transcript.json").is_file():
             raw = json.loads((folder / "transcript.json").read_text(encoding="utf-8"))
@@ -281,8 +297,8 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}}}},
     {"name": "transcribe_file", "description": "Copy a local audio or video file into the Voicify library and start fully local transcription. Supports common FFmpeg-decodable formats such as M4A, MP3, WAV, MP4, MOV, FLAC, OGG, WebM, AIFF, AAC, CAF, and WMA. Whisper receives converted 16 kHz mono PCM WAV. Returns an id to poll.",
      "inputSchema": {"type": "object", "required": ["path"], "properties": {"path": {"type": "string", "description": "Absolute path to a local recording or exported Voice Memo."}, "language": {"type": "string", "enum": ["id", "en", "auto"], "default": "id"}, "title": {"type": "string"}, "terms": {"type": "string", "description": "Optional vocabulary hint for proper nouns, up to 500 characters."}}}},
-    {"name": "get_transcript", "description": "Get a recording's current state and completed transcript, with optional timestamped segments.",
-     "inputSchema": {"type": "object", "required": ["recording_id"], "properties": {"recording_id": {"type": "string"}, "include_segments": {"type": "boolean", "default": False}}}},
+    {"name": "get_transcript", "description": "Get a recording's current state and completed transcript, with optional timestamped segments. Text includes timestamps by default; set include_timestamps to false for plain text.",
+     "inputSchema": {"type": "object", "required": ["recording_id"], "properties": {"recording_id": {"type": "string"}, "include_segments": {"type": "boolean", "default": False}, "include_timestamps": {"type": "boolean", "default": True}}}},
 ]
 
 
@@ -314,7 +330,7 @@ def handle(request):
             elif name == "transcribe_file":
                 value = transcribe_file(arguments["path"], arguments.get("language", "id"), arguments.get("title"), arguments.get("terms"))
             elif name == "get_transcript":
-                value = get_transcript(arguments["recording_id"], arguments.get("include_segments", False))
+                value = get_transcript(arguments["recording_id"], arguments.get("include_segments", False), arguments.get("include_timestamps", True))
             else:
                 raise ValueError("Unknown tool: " + str(name))
             result = {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}]}
