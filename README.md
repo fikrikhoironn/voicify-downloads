@@ -11,3 +11,7 @@ Voicify requires an Apple Silicon Mac with macOS 15 or later. Open the DMG and d
 The app is ad-hoc signed and is not notarized. If macOS blocks the downloaded app, try opening it once, then use **System Settings → Privacy & Security → Open Anyway**. macOS asks for microphone and screen recording access when you first choose those recording sources.
 
 This repository hosts downloadable builds only. Each release includes a SHA-256 checksum in its notes.
+
+## MCP for Claude Code and Codex
+
+The [Voicify MCP server](mcp/README.md) lets Claude Code or Codex list recordings, transcribe a local file, and read completed transcripts. It is optional and runs on your Mac.
