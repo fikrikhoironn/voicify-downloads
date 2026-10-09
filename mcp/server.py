@@ -59,6 +59,14 @@ def model_path():
     return next((path for path in candidates if path.is_file() and path.stat().st_size > 100_000_000), None)
 
 
+def vad_model_path():
+    explicit = setting("VAD_MODEL_PATH")
+    candidates = [Path(explicit)] if explicit else []
+    candidates.extend(root / "models" / "ggml-silero-v6.2.0.bin" for root in resource_roots())
+    candidates.append(PROJECT / "models" / "ggml-silero-v6.2.0.bin")
+    return next((path for path in candidates if path.is_file() and path.stat().st_size > 100_000), None)
+
+
 def metadata(folder):
     for filename in ("recording.json", "job.json"):
         path = folder / filename
@@ -196,8 +204,11 @@ def transcribe_worker(folder):
             )
             if conversion.returncode:
                 raise RuntimeError("Could not decode an audio track: " + conversion.stderr[-500:])
-            command = [whisper, "-m", str(model), "-f", str(wav), "-l", language,
+            command = [whisper, "-m", str(model), "-f", str(wav), "-l", language, "-mc", "0",
                        "-otxt", "-osrt", "-ovtt", "-oj", "-pp", "-of", str(folder / "transcript")]
+            vad = vad_model_path()
+            if vad:
+                command += ["--vad", "--vad-model", str(vad)]
             if terms:
                 command += ["--prompt", terms]
             result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)

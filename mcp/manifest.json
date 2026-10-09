@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "voicify",
   "display_name": "Voicify",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Access and transcribe Voicify recordings on this Mac.",
   "long_description": "List recordings, transcribe a local audio or video file, and read transcripts from the Voicify library. Transcription runs locally with the Voicify app's Whisper model. Transcript text returned through MCP is shared with Claude when you use the tool.",
   "author": {
