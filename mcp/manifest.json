@@ -1,0 +1,43 @@
+{
+  "manifest_version": "0.3",
+  "name": "voicify",
+  "display_name": "Voicify",
+  "version": "0.2.6",
+  "description": "Access and transcribe Voicify recordings on this Mac.",
+  "long_description": "List recordings, transcribe a local audio or video file, and read transcripts from the Voicify library. Transcription runs locally with the Voicify app's Whisper model. Transcript text returned through MCP is shared with Claude when you use the tool.",
+  "author": {
+    "name": "Voicify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fikrikhoironn/voicify-downloads.git"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "mcp/server.py",
+    "mcp_config": {
+      "command": "/usr/bin/python3",
+      "args": ["${__dirname}/mcp/server.py"]
+    }
+  },
+  "tools": [
+    {
+      "name": "list_recordings",
+      "description": "List recent Voicify recordings."
+    },
+    {
+      "name": "transcribe_file",
+      "description": "Transcribe a local audio or video file."
+    },
+    {
+      "name": "get_transcript",
+      "description": "Read a completed transcript with optional timestamps."
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin"],
+    "runtimes": {
+      "python": ">=3.9"
+    }
+  }
+}

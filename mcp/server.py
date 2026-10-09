@@ -44,6 +44,7 @@ def executable(name):
     candidates = [Path(explicit)] if explicit else []
     candidates.extend(root / "bin" / name for root in resource_roots())
     candidates.append(PROJECT / "bin" / name)
+    candidates.extend([Path("/opt/homebrew/bin") / name, Path("/usr/local/bin") / name])
     for path in candidates:
         if path.is_file() and os.access(path, os.X_OK):
             return str(path)

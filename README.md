@@ -1,6 +1,6 @@
 # Voicify for macOS
 
-Record meetings and transcribe them locally in Indonesian or English. Voicify can capture your microphone, system audio, or both, and can import existing audio or video files. Recordings and transcripts stay on your Mac.
+Record meetings and transcribe them locally in Indonesian or English. Voicify can capture your microphone, system audio, or both, and can import existing audio or video files. You can start another recording while a previous transcript is processing; transcriptions queue automatically. Recordings and transcripts stay on your Mac until you choose to share them.
 
 TXT export and Copy offer text with or without `[HH:MM:SS.mmm]` timestamps. SRT, VTT, and JSON preserve their timing data.
 
@@ -16,4 +16,4 @@ This repository hosts downloadable builds only. Each release includes a SHA-256 
 
 ## MCP for Claude Code and Codex
 
-The [Voicify MCP server](mcp/README.md) lets Claude Code or Codex list recordings, transcribe a local file, and read completed transcripts. It is optional and runs on your Mac.
+The [Voicify MCP server](mcp/README.md) lets Claude Desktop, Claude Code, or Codex list recordings, transcribe a local file, and read completed transcripts. For Claude Desktop, download the `Voicify-MCP-0.2.6.mcpb` asset from the [latest release](https://github.com/fikrikhoironn/voicify-downloads/releases/latest) and import it from **Settings → Extensions → Advanced settings → Install Extension…**. Install the Voicify app in Applications first. The extension is optional and runs on your Mac.

@@ -1,6 +1,12 @@
 # Voicify MCP
 
-The stdio MCP server in `server.py` gives Codex and Claude Code access to recordings stored in `~/Documents/Voicify/`. If that folder does not exist but `~/Documents/Saylo/` does, Voicify uses the older library so existing recordings remain accessible. It runs locally and sends no audio or transcript data to a remote service.
+The stdio MCP server in `server.py` gives Claude Desktop, Claude Code, and Codex access to recordings stored in `~/Documents/Voicify/`. If that folder does not exist but `~/Documents/Saylo/` does, Voicify uses the older library so existing recordings remain accessible. Transcription runs locally. When you ask Claude to read a transcript through MCP, that transcript text is provided to Claude.
+
+## Claude Desktop import
+
+Download `Voicify-MCP-0.2.6.mcpb` from the [latest release](https://github.com/fikrikhoironn/voicify-downloads/releases/latest). In Claude Desktop, open **Settings → Extensions → Advanced settings → Install Extension…** and choose the `.mcpb` file. The extension contains its own MCP server; you do not need to clone this repository or edit Claude's JSON configuration. Install the Voicify app in `/Applications` or `~/Applications` so the extension can find its bundled Whisper model. `transcribe_file` also requires FFmpeg; on Apple Silicon Macs, the extension looks in `/opt/homebrew/bin` as well as the app's resources.
+
+In Claude Desktop chat, open **+ → Connectors** to find Voicify. The extension is local to Claude Desktop and does not install a connector for claude.ai.
 
 ## Tools
 
@@ -12,7 +18,7 @@ The stdio MCP server in `server.py` gives Codex and Claude Code access to record
 
 Transcription runs in a separate local process. It continues if the MCP connection closes, and an unfinished job is resumed when the MCP server starts again after an interruption. Jobs share a lock so only one MCP transcription uses the model at a time.
 
-The server looks for `ffmpeg` and `whisper-cli` in the Voicify app resources, the project `bin/` folder, then `PATH`. Set `VOICIFY_RESOURCES`, `VOICIFY_FFMPEG_PATH`, `VOICIFY_WHISPER_CLI_PATH`, or `VOICIFY_MODEL_PATH` to select explicit resources. It uses the multilingual `ggml-small.bin` model.
+The server looks for `ffmpeg` and `whisper-cli` in the Voicify app resources, the project `bin/` folder, Homebrew locations, then `PATH`. Set `VOICIFY_RESOURCES`, `VOICIFY_FFMPEG_PATH`, `VOICIFY_WHISPER_CLI_PATH`, or `VOICIFY_MODEL_PATH` to select explicit resources. It uses the multilingual `ggml-small.bin` model.
 
 ## Codex setup
 
